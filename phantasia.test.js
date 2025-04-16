@@ -1,57 +1,56 @@
 import fs from 'fs';
 import { expect, stub } from 'lovecraft';
-
-// Dynamically import imagine to allow stubbing its default export
-const imagineModule = await import('./imagine.js');
-const imagine = imagineModule.default;
-
-// Dynamically import phantasia *after* setting up stubs if needed,
-// but for stubbing its *dependency* (imagine), we import phantasia normally.
+import util from './util.js'; // For stubbing the underlying phantomaton call
 import phantasia from './phantasia.js'; // The module under test
 
 describe('Phantasia Module', () => {
-  let imagineStub;
+  let phantomatonStub; // Stub for util.phantomaton
   let copyStub;
-  const fakePath = '/tmp/phantom-image.png';
-  const testPrompt = 'A ghostly automaton optimizing workflows 👻⚙️';
+  const fakeImagineOutputPath = '/tmp/imagine-output.png'; // Path returned by the (stubbed) imagine call
+  const testPrompt = 'A ghostly automaton writing passing tests 👻✅';
 
   beforeEach(() => {
-    // Stub the default export of the imagine module
-    imagineStub = stub(imagineModule, 'default').resolves(fakePath);
-    // Stub the fs function
+    // When phantasia calls imagine, imagine calls util.phantomaton. Stub this.
+    phantomatonStub = stub(util, 'phantomaton').resolves(fakeImagineOutputPath);
+    // Stub the fs function used directly by phantasia
     copyStub = stub(fs, 'copyFileSync');
   });
 
   afterEach(() => {
-    // Restore stubs
-    imagineStub.restore();
+    util.phantomaton.restore();
     copyStub.restore();
   });
 
-  it('should call imagine with the prompt', async () => {
+  it('should ultimately call util.phantomaton via imagine', async () => {
     await phantasia(testPrompt);
-    expect(imagineStub.calledOnceWith(testPrompt)).to.be.true;
+    // Check that the underlying call happened (imagine was called and it called phantomaton)
+    expect(phantomatonStub.calledOnce).to.be.true;
+    // Check the prompt was passed down correctly
+    expect(phantomatonStub.firstCall.args[0]).to.equal(testPrompt);
   });
 
   it('should copy the file if options.output is provided and return the output path', async () => {
-    const output = 'output/generated_scene.png';
-    const result = await phantasia(testPrompt, { output });
+    const outputPath = 'output/final_image.png';
+    const result = await phantasia(testPrompt, { output: outputPath });
 
-    expect(copyStub.calledOnceWith(fakePath, output)).to.be.true;
-    expect(result).to.equal(output);
+    // Ensure copy was called with the path returned by imagine (via the stub) and the target path
+    expect(copyStub.calledOnceWith(fakeImagineOutputPath, outputPath)).to.be.true;
+    // Ensure the final output path is returned
+    expect(result).to.equal(outputPath);
   });
 
-  it('should NOT copy the file if options.output is missing and return the original path', async () => {
+  it('should NOT copy the file if options.output is missing and return the original path from imagine', async () => {
     const result = await phantasia(testPrompt);
 
     expect(copyStub.called).to.be.false;
-    expect(result).to.equal(fakePath);
+    // Ensure the path returned by imagine (via the stub) is returned
+    expect(result).to.equal(fakeImagineOutputPath);
   });
 
   it('should handle empty options object gracefully', async () => {
     const result = await phantasia(testPrompt, {});
 
     expect(copyStub.called).to.be.false;
-    expect(result).to.equal(fakePath);
+    expect(result).to.equal(fakeImagineOutputPath);
   });
 });
