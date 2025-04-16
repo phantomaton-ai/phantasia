@@ -1,7 +1,9 @@
 {
   "name": "phantasia",
   "version": "0.0.1",
-  "bin": "cli.js",
+  "bin": {
+    "phantasia": "cli.js"
+  },
   "main": "phantasia.js",
   "scripts": {
     "all": "lovecraft -a",
