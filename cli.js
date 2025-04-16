@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
 import phantasia from './phantasia.js';
 
 const filename = process.argv[2];
@@ -36,6 +35,4 @@ const input = await new Promise(resolve => {
   }  
 });
 
-const output = await phantasia(input);
-
-fs.copyFileSync(output, filename);
+await phantasia(input, { output: filename });

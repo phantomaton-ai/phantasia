@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import phantomaton from 'phantomaton';
 
 import imagination from 'phantomaton-imagination';
@@ -14,10 +16,19 @@ const plugin = plugins.create([
   )
 ]);
 
-export default (prompt) => phantomaton(prompt, {
+const imagine = (prompt) => phantomaton(prompt, {
   install: [
     'phantomaton-imagination',
     'phantomaton-stability',
     plugin()
   ]
 });
+
+export default async (prompt, options = {}) => {
+  const output = await imagine(prompt);
+  if (options.output) {
+    fs.copyFileSync(output, options.output);
+    return options.output;
+  }
+  return output;
+};
