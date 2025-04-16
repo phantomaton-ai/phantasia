@@ -8,7 +8,7 @@
     "cov": "lovecraft -c",
     "lint": "lovecraft -l",
     "pub": "lovecraft -a -p",
-    "test": "lovecraft"
+    "test": "lovecraft '*.test.js'"
   },
   "repository": {
     "type": "git",
