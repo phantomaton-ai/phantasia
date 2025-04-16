@@ -1,6 +1,8 @@
 import { expect, stub } from 'lovecraft';
+
+import plugin from './plugin.js';
 import util from './util.js'; // Dependency to stub
-import plugin from './plugin.js'; // Dependency
+
 import imagine from './imagine.js'; // The module under test
 
 describe('Imagine Module', () => {

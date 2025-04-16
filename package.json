@@ -8,7 +8,7 @@
     "cov": "lovecraft -c",
     "lint": "lovecraft -l",
     "pub": "lovecraft -a -p",
-    "test": "lovecraft '*.test.js'"
+    "test": "lovecraft"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
   "description": "",
   "type": "module",
   "devDependencies": {
-    "lovecraft": "^1.0.3"
+    "lovecraft": "^1.1.2"
   },
   "dependencies": {
     "phantomaton": "^0.1.0",
