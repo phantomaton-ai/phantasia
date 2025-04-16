@@ -1,6 +1,6 @@
 {
   "name": "phantasia",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "bin": "cli.js",
   "main": "phantasia.js",
   "scripts": {
