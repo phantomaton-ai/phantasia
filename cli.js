@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+
+import fs from 'fs';
 import phantasia from './phantasia.js';
 
 const filename = process.argv[2];
@@ -6,8 +9,6 @@ if (!filename || filename.length < 1) {
   console.log('Usage: phantasia <filename>');
   process.exit();
 }
-
-console.log(filename);
 
 const input = await new Promise(resolve => {
   let data = '';
@@ -35,4 +36,6 @@ const input = await new Promise(resolve => {
   }  
 });
 
-console.log("INPUT", input);
+const output = await phantasia(input);
+
+fs.copyFileSync(output, filename);

@@ -7,13 +7,17 @@ const plugin = plugins.create([
   plugins.define(
     plugins.start
   ).with(
-    plugins.input,
-    imagination.adapter
+    imagination.adapter,
+    plugins.input
   ).as(
-    ([input, adapter]) => () => adapter.imagine(input)
+    (adapter, input) => () => adapter.imagine(input())
   )
 ]);
 
 export default (prompt) => phantomaton(prompt, {
-  install: ['phantomaton-stability', plugin()]
+  install: [
+    'phantomaton-imagination',
+    'phantomaton-stability',
+    plugin()
+  ]
 });
