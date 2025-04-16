@@ -1,21 +1,20 @@
 import { expect, stub } from 'lovecraft';
-
-import plugin from './plugin.js';
-import util from './util.js'; // Dependency to stub
-
+import util from './util.js'; // The object whose property we'll stub
+import plugin from './plugin.js'; // The plugin function used in the config
 import imagine from './imagine.js'; // The module under test
 
 describe('Imagine Module', () => {
   let phantomatonStub;
-  const testPrompt = 'a test prompt 🧪';
+  const testPrompt = 'a test prompt for imagine 🧪✨';
   const fakeResult = 'path/to/generated/image.png';
 
   beforeEach(() => {
-    // Stub the phantomaton function inside the util object
+    // Stub the 'phantomaton' property ON the imported 'util' object
     phantomatonStub = stub(util, 'phantomaton').resolves(fakeResult);
   });
 
   afterEach(() => {
+    // Restore the original property on 'util'
     util.phantomaton.restore();
   });
 
@@ -30,7 +29,7 @@ describe('Imagine Module', () => {
     expect(args[1].install).to.deep.include('phantomaton-imagination');
     expect(args[1].install).to.deep.include('phantomaton-stability');
     // Check that the result of calling plugin() is included
-    expect(args[1].install[2]).to.deep.equal(plugin());
+    expect(args[1].install[2]).to.deep.equal(plugin()); // Ensure plugin() result is passed
   });
 
   it('should return the result from util.phantomaton', async () => {
