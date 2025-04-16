@@ -1,27 +1,27 @@
 import fs from 'fs';
 import { expect, stub } from 'lovecraft';
-import imagine from './imagine.js'; // Dependency to stub
+import util from './util.js'; // Dependency to stub
 import phantasia from './phantasia.js'; // The module under test
 
 describe('Phantasia Module', () => {
-  let imagineStub;
+  let phantomatonStub;
   let copyStub;
   const fakePath = '/tmp/phantom-image.png';
   const testPrompt = 'A robot ghost writing code 👻🤖';
 
   beforeEach(() => {
-    imagineStub = stub(imagine, 'default').resolves(fakePath);
+    phantomatonStub = stub(util, 'phantomaton').resolves(fakePath);
     copyStub = stub(fs, 'copyFileSync');
   });
 
   afterEach(() => {
-    imagineStub.restore();
+    phantomatonStub.restore();
     copyStub.restore();
   });
 
   it('should call imagine with the prompt', async () => {
     await phantasia(testPrompt);
-    expect(imagineStub.calledOnceWith(testPrompt)).to.be.true;
+    expect(phantomatonStub.calledOnceWith(testPrompt)).to.be.true;
   });
 
   it('should copy the file if options.output is provided and return the output path', async () => {
