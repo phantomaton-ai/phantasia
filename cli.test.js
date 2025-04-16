@@ -1,103 +1,109 @@
+import fs from 'fs'; // Needed for stubbing copyFileSync
 import { expect, stub } from 'lovecraft';
+import util from './util.js'; // For stubbing the underlying phantomaton call
 
-// Dynamically import phantasia to allow stubbing its default export
-const phantasiaModule = await import('./phantasia.js');
+// Note: cli.js is dynamically imported within tests AFTER mocks are set up
 
 describe('Phantasia CLI', () => {
-  let phantasiaStub;
+  let phantomatonStub; // Stub for util.phantomaton
+  let copyStub;        // Stub for fs.copyFileSync
   let logStub;
   let exitStub;
   let argvBackup;
   let stdinBackup;
 
-  const testPrompt = 'Input prompt for CLI test ✨';
-  const testFilename = 'cli-output.png';
+  const testPrompt = 'Input prompt for CLI test execution ⌨️';
+  const testFilename = 'cli-target.png';
+  const fakeImagineOutputPath = '/tmp/cli-imagine-output.png'; // Path returned by imagine via stub
 
   // Simple stdin mock
   const MockStdin = () => {
-      let data = null;
-      let readableListeners = [];
-      let endListeners = [];
+      let data = null; let readable = []; let end = [];
       return {
           isTTY: false,
-          on: (event, listener) => (event === 'readable' ? readableListeners : endListeners).push(listener),
+          on: (evt, fn) => (evt === 'readable' ? readable : end).push(fn),
           read: () => { const chunk = data; data = null; return chunk; },
           _simulateInput: (input) => {
               data = input;
-              // Use setImmediate or nextTick to ensure listeners are attached in cli.js
-              setImmediate(() => {
-                  readableListeners.forEach(fn => fn());
-                  endListeners.forEach(fn => fn());
+              setImmediate(() => { // Use setImmediate for async behavior
+                  readable.forEach(fn => fn());
+                  end.forEach(fn => fn());
               });
           },
-          _reset: () => { data = null; readableListeners = []; endListeners = []; }
+          _reset: () => { data = null; readable = []; end = []; }
       };
   };
 
-
   beforeEach(() => {
-    // Stub the default export of the phantasia module
-    phantasiaStub = stub(phantasiaModule, 'default').resolves(testFilename);
+    // Stub the dependencies that will be called when cli.js runs phantasia()
+    phantomatonStub = stub(util, 'phantomaton').resolves(fakeImagineOutputPath);
+    copyStub = stub(fs, 'copyFileSync');
+
+    // Mock process and console
     logStub = stub(console, 'log');
     exitStub = stub(process, 'exit');
-
-    // Backup and mock process properties
     argvBackup = process.argv;
     stdinBackup = process.stdin;
-    process.argv = ['node', 'cli.js']; // Base args
+    process.argv = ['node', 'cli.js']; // Reset args
     const mockStdin = MockStdin();
     Object.defineProperty(process, 'stdin', { value: mockStdin, configurable: true });
-    mockStdin._reset(); // Ensure clean state
+    mockStdin._reset();
   });
 
-  afterEach(() => {
-    // Restore all stubs and process properties
-    phantasiaStub.restore();
+  afterEach(async () => {
+    // Restore all stubs and mocks
+    phantomatonStub.restore();
+    copyStub.restore();
     logStub.restore();
     exitStub.restore();
     process.argv = argvBackup;
     Object.defineProperty(process, 'stdin', { value: stdinBackup, configurable: true });
 
-    // Attempt to clear module cache for cli.js for re-import test runs
-    // Note: Proper ESM cache busting is tricky and environment-dependent.
-    const cliPath = new URL('./cli.js', import.meta.url).pathname;
-     if (require.cache && require.resolve) {
-         delete require.cache[require.resolve(cliPath)];
-     }
+    // Attempt to clear module cache for cli.js using dynamic import workaround
+    const cliPath = './cli.js';
+    try {
+        await import(`${cliPath}?t=${Date.now()}`);
+    } catch (e) {
+        // Ignore errors, cache busting is best-effort
+    }
   });
 
-  it('should call phantasia with stdin prompt and output filename arg', async () => {
-    process.argv.push(testFilename); // Add filename argument
-    process.stdin._simulateInput(testPrompt); // Trigger stdin simulation
+  // Helper to dynamically import cli.js ensuring mocks are applied first
+  const runCli = async () => {
+      return await import(`./cli.js?t=${Date.now()}`);
+  }
 
-    // Dynamically import cli.js to execute it *after* mocks are set up
-    await import('./cli.js');
+  it('should ultimately call phantomaton and copyFileSync', async () => {
+    process.argv.push(testFilename);
+    process.stdin._simulateInput(testPrompt);
 
-    // Allow async operations (stdin reading, phantasia call) to complete
-    await new Promise(resolve => setImmediate(resolve)); // Wait for next event loop cycle
+    await runCli(); // Execute the CLI script
+    await new Promise(resolve => setImmediate(resolve)); // Wait for async ops
 
-    expect(phantasiaStub.calledOnce).to.be.true;
-    expect(phantasiaStub.firstCall.args[0]).to.equal(testPrompt);
-    expect(phantasiaStub.firstCall.args[1]).to.deep.equal({ output: testFilename });
+    // Check that the underlying calls were made correctly
+    expect(phantomatonStub.calledOnce).to.be.true;
+    expect(phantomatonStub.firstCall.args[0]).to.equal(testPrompt);
+    expect(copyStub.calledOnceWith(fakeImagineOutputPath, testFilename)).to.be.true;
     expect(exitStub.called).to.be.false; // Should not exit on success
   });
 
   it('should print usage and exit if filename argument is missing', async () => {
-    // process.argv is already ['node', 'cli.js']
-    await import('./cli.js');
+    await runCli();
     await new Promise(resolve => setImmediate(resolve));
 
-    expect(phantasiaStub.called).to.be.false;
+    expect(phantomatonStub.called).to.be.false;
+    expect(copyStub.called).to.be.false;
     expect(logStub.calledOnceWith('Usage: phantasia <filename>')).to.be.true;
     expect(exitStub.calledOnce).to.be.true;
   });
 
    it('should print usage and exit if filename argument is empty', async () => {
     process.argv.push(''); // Add empty filename argument
-    await import('./cli.js');
+    await runCli();
     await new Promise(resolve => setImmediate(resolve));
 
-    expect(phantasiaStub.called).to.be.false;
+    expect(phantomatonStub.called).to.be.false;
+    expect(copyStub.called).to.be.false;
     expect(logStub.calledOnceWith('Usage: phantasia <filename>')).to.be.true;
     expect(exitStub.calledOnce).to.be.true;
   });
