@@ -1,13 +1,12 @@
 import imagination from 'phantomaton-imagination';
 import plugins from 'phantomaton-plugins';
 
-export default plugins.create([
+export default plugins.create(({ configuration }) => [
   plugins.define(
     plugins.start
   ).with(
-    imagination.adapter,
-    plugins.input
+    imagination.adapter, plugins.input
   ).as(
-    (adapter, input) => () => adapter.imagine(input())
+    (adapter, input) => () => adapter.image(input(), configuration)
   )
 ]);

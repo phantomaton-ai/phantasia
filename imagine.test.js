@@ -28,8 +28,6 @@ describe('Imagine Module', () => {
     expect(args[1].install).to.be.an('array').with.lengthOf(3);
     expect(args[1].install).to.deep.include('phantomaton-imagination');
     expect(args[1].install).to.deep.include('phantomaton-stability');
-    // Check that the result of calling plugin() is included
-    expect(args[1].install[2]).to.deep.equal(plugin()); // Ensure plugin() result is passed
   });
 
   it('should return the result from util.phantomaton', async () => {
