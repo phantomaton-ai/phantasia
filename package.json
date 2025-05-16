@@ -1,6 +1,6 @@
 {
   "name": "phantasia",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "bin": {
     "phantasia": "cli.js"
   },
@@ -28,6 +28,6 @@
     "phantomaton": "^0.1.0",
     "phantomaton-imagination": "^0.0.1",
     "phantomaton-plugins": "^0.0.2",
-    "phantomaton-stability": "^0.0.1"
+    "phantomaton-stability": "^0.0.2"
   }
 }
