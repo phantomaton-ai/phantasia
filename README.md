@@ -51,6 +51,14 @@ async function generateImage(prompt, outputPath) {
 generateImage('Spectral automaton coding in a haunted library', 'haunted_coding.png');
 ```
 
+### Options ⚙️
+
+When running `phantasia` programmatically, the following options are available:
+
+* `output`: Path to use for image file output.
+* `width`: Width, in pixels.
+* `height`: Height, in pixels.
+
 ## Configuration 🔧
 
 Phantasia relies upon the standard [Phantomaton configuration](https://github.com/phantomaton-ai/phantomaton?tab=readme-ov-file#configuration-).
