@@ -7,6 +7,6 @@ export default plugins.create(({ configuration }) => [
   ).with(
     imagination.adapter, plugins.input
   ).as(
-    (adapter, input) => () => adapter.image(input(), configuration)
+    (adapter, input) => () => adapter.imagine(input(), configuration)
   )
 ]);
